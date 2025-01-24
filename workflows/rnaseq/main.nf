@@ -87,6 +87,8 @@ workflow RNASEQ {
     ch_chrom_sizes       // channel: path(genome.sizes)
     ch_gene_bed          // channel: path(gene.bed)
     ch_transcript_fasta  // channel: path(transcript.fasta)
+    ch_flatfile          // channel: path(flatfile.refflat)
+    ch_rrna_intervals    // channel: path(rrna_intervals.bed)
     ch_star_index        // channel: path(star/index/)
     ch_rsem_index        // channel: path(rsem/index/)
     ch_hisat2_index      // channel: path(hisat2/index/)
@@ -426,10 +428,13 @@ workflow RNASEQ {
         BAM_MARKDUPLICATES_PICARD (
             ch_genome_bam,
             ch_fasta.map { [ [:], it ] },
-            ch_fai.map { [ [:], it ] }
+            ch_fai.map { [ [:], it ] },
+            ch_flatfile,
+            ch_rrna_intervals
         )
         ch_genome_bam       = BAM_MARKDUPLICATES_PICARD.out.bam
         ch_genome_bam_index = BAM_MARKDUPLICATES_PICARD.out.bai
+        ch_multiqc_files = ch_multiqc_files.mix(BAM_MARKDUPLICATES_PICARD.out.rnaseqmetrics.collect{it[1]})
         ch_multiqc_files = ch_multiqc_files.mix(BAM_MARKDUPLICATES_PICARD.out.stats.collect{it[1]})
         ch_multiqc_files = ch_multiqc_files.mix(BAM_MARKDUPLICATES_PICARD.out.flagstat.collect{it[1]})
         ch_multiqc_files = ch_multiqc_files.mix(BAM_MARKDUPLICATES_PICARD.out.idxstats.collect{it[1]})

@@ -103,6 +103,24 @@
                     "fa_icon": "far fa-file-code",
                     "description": "Path to FASTA transcriptome file."
                 },
+                "flatfile": {
+                    "type": "string",
+                    "format": "file-path",
+                    "exists": true,
+                    "mimetype": "text/plain",
+                    "pattern": "^\\S+\\.refflat$",
+                    "fa_icon": "far fa-file-code",
+                    "description": "Path to reference genome FLAT file."
+                },
+                "rrna_intervals": {
+                    "type": "string",
+                    "format": "file-path",
+                    "exists": true,
+                    "mimetype": "text/plain",
+                    "pattern": "^\\S+\\.bed$",
+                    "fa_icon": "far fa-file-code",
+                    "description": "Path to rRNA interval regions BED file."
+                },
                 "additional_fasta": {
                     "type": "string",
                     "format": "file-path",

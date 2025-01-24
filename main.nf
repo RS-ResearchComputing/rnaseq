@@ -17,9 +17,11 @@
 
 params.fasta            = getGenomeAttribute('fasta')
 params.additional_fasta = getGenomeAttribute('additional_fasta')
+params.flatfile         = getGenomeAttribute('flatfile')
 params.transcript_fasta = getGenomeAttribute('transcript_fasta')
 params.gff              = getGenomeAttribute('gff')
 params.gtf              = getGenomeAttribute('gtf')
+params.rrna_intervals   = getGenomeAttribute('rrna_intervals')
 params.gene_bed         = getGenomeAttribute('bed12')
 params.bbsplit_index    = getGenomeAttribute('bbsplit')
 params.sortmerna_index  = getGenomeAttribute('sortmerna')
@@ -64,7 +66,9 @@ workflow NFCORE_RNASEQ {
         params.gtf,
         params.gff,
         params.additional_fasta,
+        params.flatfile,
         params.transcript_fasta,
+        params.rrna_intervals,
         params.gene_bed,
         params.splicesites,
         params.bbsplit_fasta_list,
@@ -109,6 +113,8 @@ workflow NFCORE_RNASEQ {
         PREPARE_GENOME.out.chrom_sizes,
         PREPARE_GENOME.out.gene_bed,
         PREPARE_GENOME.out.transcript_fasta,
+        PREPARE_GENOME.out.flatfile,
+        PREPARE_GENOME.out.rrna_intervals,
         PREPARE_GENOME.out.star_index,
         PREPARE_GENOME.out.rsem_index,
         PREPARE_GENOME.out.hisat2_index,

@@ -8,6 +8,7 @@ keywords:
   - cram
 components:
   - picard/markduplicates
+  - picard/collectrnaseqmetrics
   - samtools/index
   - samtools/stats
   - samtools/idxstats
@@ -26,6 +27,10 @@ input:
       description: |
         Index of the reference genome fasta file
         Structure: [ path(fai) ]
+  - ch_flatfile:
+      description: |
+        Flat file (.txt) of reference genome
+        Structure: [ path(flatfile) ]
 output:
   - bam:
       description: |
@@ -59,6 +64,10 @@ output:
       description: |
         File containing samtools idxstats output
         Structure: [ val(meta), path(idxstats) ]
+  - rnaseqmetrics:
+      description: |
+        File containing picard collectrnaseqmetrics output
+        Structure [ val(meta), path(rnaseqmetrics)]
   - versions:
       description: |
         Files containing software versions
@@ -66,6 +75,7 @@ output:
 authors:
   - "@dmarron"
   - "@drpatelh"
+  - "@RS-ResearchComputing"
 maintainers:
   - "@dmarron"
   - "@drpatelh"

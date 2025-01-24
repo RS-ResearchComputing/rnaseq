@@ -7,7 +7,9 @@ include { GUNZIP as GUNZIP_GTF              } from '../../../modules/nf-core/gun
 include { GUNZIP as GUNZIP_GFF              } from '../../../modules/nf-core/gunzip'
 include { GUNZIP as GUNZIP_GENE_BED         } from '../../../modules/nf-core/gunzip'
 include { GUNZIP as GUNZIP_TRANSCRIPT_FASTA } from '../../../modules/nf-core/gunzip'
+include { GUNZIP as GUNZIP_FLATFILE         } from '../../../modules/nf-core/gunzip'
 include { GUNZIP as GUNZIP_ADDITIONAL_FASTA } from '../../../modules/nf-core/gunzip'
+include { GUNZIP as GUNZIP_RRNA_INTERVAL    } from '../../../modules/nf-core/gunzip'
 
 include { UNTAR as UNTAR_BBSPLIT_INDEX      } from '../../../modules/nf-core/untar'
 include { UNTAR as UNTAR_SORTMERNA_INDEX    } from '../../../modules/nf-core/untar'
@@ -41,7 +43,9 @@ workflow PREPARE_GENOME {
     gtf                      //      file: /path/to/genome.gtf
     gff                      //      file: /path/to/genome.gff
     additional_fasta         //      file: /path/to/additional.fasta
+    flatfile                 //      file: /path/to/flatfile.refflat
     transcript_fasta         //      file: /path/to/transcript.fasta
+    rrna_intervals           //      file: /path/to/rrna_intervals.bed
     gene_bed                 //      file: /path/to/gene.bed
     splicesites              //      file: /path/to/splicesites.txt
     bbsplit_fasta_list       //      file: /path/to/bbsplit_fasta_list.txt
@@ -121,6 +125,26 @@ workflow PREPARE_GENOME {
             ch_gtf = GTF_FILTER.out.genome_gtf
             ch_versions = ch_versions.mix(GTF_FILTER.out.versions)
         }
+    }
+
+    //
+    // Uncompress flat file
+    //
+    if (flatfile.endsWith('.gz')) {
+        ch_flatfile    = GUNZIP_FLATFILE ( [ [:], file(flatfile, checkIfExists: true) ] ).gunzip.map { it[1] }
+        ch_versions = ch_versions.mix(GUNZIP_FLATFILE.out.versions)
+    } else {
+        ch_flatfile = Channel.value(file(flatfile, checkIfExists: true))
+    }
+
+    //
+    // Uncompress ribosomal_intervals file
+    //
+    if (rrna_intervals.endsWith('.gz')) {
+        ch_rrna_intervals    = GUNZIP_RRNA_INTERVAL ( [ [:], file(rrna_intervals, checkIfExists: true) ] ).gunzip.map { it[1] }
+        ch_versions = ch_versions.mix(GUNZIP_RRNA_INTERVAL.out.versions)
+    } else {
+        ch_rrna_intervals = Channel.value(file(rrna_intervals, checkIfExists: true))
     }
 
     //
@@ -371,6 +395,8 @@ workflow PREPARE_GENOME {
     fai              = ch_fai                    // channel: path(genome.fai)
     gene_bed         = ch_gene_bed               // channel: path(gene.bed)
     transcript_fasta = ch_transcript_fasta       // channel: path(transcript.fasta)
+    flatfile         = ch_flatfile               // channel: path(flatfile.refflat)
+    rrna_intervals   = ch_rrna_intervals         // channel: path(rrna_intervals.bed)
     chrom_sizes      = ch_chrom_sizes            // channel: path(genome.sizes)
     splicesites      = ch_splicesites            // channel: path(genome.splicesites.txt)
     bbsplit_index    = ch_bbsplit_index          // channel: path(bbsplit/index/)
