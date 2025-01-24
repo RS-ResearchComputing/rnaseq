@@ -32,6 +32,7 @@ library(pheatmap)
 
 option_list <- list(
     make_option(c("-i", "--count_file"    ), type="character", default=NULL    , metavar="path"   , help="Count file matrix where rows are genes and columns are samples."                        ),
+    make_option(c("-s", "--rin"           ), type="character", default=NULL    , metavar="path"   , help="Score file with RNA integrity number of sample."                                        ),
     make_option(c("-f", "--count_col"     ), type="integer"  , default=3       , metavar="integer", help="First column containing sample count data."                                             ),
     make_option(c("-d", "--id_col"        ), type="integer"  , default=1       , metavar="integer", help="Column containing identifiers to be used."                                              ),
     make_option(c("-r", "--sample_suffix" ), type="character", default=''      , metavar="string" , help="Suffix to remove after sample name in columns e.g. '.rmDup.bam' if 'DRUG_R1.rmDup.bam'."),
@@ -60,6 +61,29 @@ rownames(count.table) <- count.table[,opt$id_col]
 count.table           <- count.table[,opt$count_col:ncol(count.table),drop=FALSE]
 colnames(count.table) <- gsub(opt$sample_suffix,"",colnames(count.table))
 colnames(count.table) <- gsub(pattern='\\.$', replacement='', colnames(count.table))
+
+################################################
+################################################
+## READ IN RIN AND BATCH SCORE FILE           ##
+################################################
+################################################
+
+rin.table           <- read.delim(file=opt$rin,header=FALSE, row.names=NULL,sep=",") 
+colnames(rin.table) <- c("sample", "color", "batch")
+
+color_assignment <- function(vector){
+  color.vector <- ifelse(vector >= 1 & vector <= 4, "red",
+                        ifelse(vector > 4 & vector <= 7, "yellow",
+                               ifelse(vector > 7 & vector <= 10, "green", NA)))
+  return(color.vector)
+}
+symbol_assignment    <- function(vector){
+  symbols           <- c("circle", "cross", "star", "asterisk", "diamond", "hexagon")
+  selected_symbols  <- setNames(symbols[seq_along(unique(vector))], unique(vector))
+  return(selected_symbols[as.character(vector)])
+}
+rin.table$color     <- color_assignment(rin.table$color)
+rin.table$batch     <- symbol_assignment(rin.table$batch)
 
 ################################################
 ################################################
@@ -188,10 +212,20 @@ for (n_top_var in ntop) {
 
 ## WRITE PC1 vs PC2 VALUES TO FILE
 pca.vals           <- pca.data[,c("PC1","PC2")]
-colnames(pca.vals) <- paste0(colnames(pca.vals), ": ", percentVar[1:2], '% variance')
+colnames(pca.vals) <- titles <- paste0(colnames(pca.vals), ": ", percentVar[1:2], '% variance')
 pca.vals           <- cbind(sample = rownames(pca.vals), pca.vals)
-write.table(pca.vals, file = paste(opt$outprefix, ".pca.vals.txt", sep=""),
-            row.names = FALSE, col.names = TRUE, sep = "\t", quote = TRUE)
+pca.vals.rin       <- merge(x = pca.vals, y = rin.table, by = "sample", all.x = TRUE)
+
+filename           <- paste(opt$outprefix, ".pca.vals.txt", sep="")
+readintofile = function(row){
+    line = paste0(c(" ", row[1], ": {x: ", row[2], ", y: ", row[3], ", color: '", row[4], "', symbol: '", row[5], "'}"), collapse = "")
+    cat(file = filename, line, sep= "\n", append = T)
+}
+
+cat(file = filename, paste0(c("    xlab: \"", titles[1], "\""), collapse = ""), sep = "\n")
+cat(file = filename, paste0(c("    ylab: \"", titles[2], "\""), collapse = ""), sep = "\n", append = T)
+cat(file = filename, "data:", sep = "\n", append = T)
+invisible(apply(pca.vals.rin, 1, readintofile))
 
 ## SAMPLE CORRELATION HEATMAP
 sampleDists      <- dist(t(assay(dds, vst_name)))

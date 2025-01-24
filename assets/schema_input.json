@@ -39,8 +39,16 @@
                 "errorMessage": "Strandedness must be provided and be one of 'auto', 'forward', 'reverse' or 'unstranded'",
                 "enum": ["forward", "reverse", "unstranded", "auto"],
                 "meta": ["strandedness"]
+            },
+            "rin": {
+                "type": "number",
+                "errorMessage": "RIN (RNA integrity number) must be provided and be a float"
+            },
+            "batch": {
+                "type": "number",
+                "errorMessage": "Batch preparation value. Can be from technician, library-prep, or run"
             }
         },
-        "required": ["sample", "fastq_1", "strandedness"]
+        "required": ["sample", "fastq_1", "strandedness", "rin"]
     }
 }

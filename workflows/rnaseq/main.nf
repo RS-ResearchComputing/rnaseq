@@ -113,7 +113,7 @@ workflow RNASEQ {
     Channel
         .fromList(samplesheetToList(params.input, "${projectDir}/assets/schema_input.json"))
         .map {
-            meta, fastq_1, fastq_2 ->
+            meta, fastq_1, fastq_2, rin, batch ->
                 if (!fastq_2) {
                     return [ meta.id, meta + [ single_end:true ], [ fastq_1 ] ]
                 } else {
@@ -125,6 +125,23 @@ workflow RNASEQ {
             checkSamplesAfterGrouping(samplesheet)
         }
         .set { ch_fastq }
+
+    //
+    // Create channel for RIN values from input file provided through params.input
+    //
+    Channel
+        .fromList(samplesheetToList(params.input, "${projectDir}/assets/schema_input.json"))
+        .map {
+            meta, fastq_1, fastq_2, rin, batch ->
+                if (rin) {
+                    return [meta.id, rin, batch]
+                }
+        }
+        .distinct()
+        .collectFile { id, rin, batch ->
+            ['rin.txt',"${id},${rin},${batch}\n"]
+        }
+        .set { ch_rin }
 
     //
     // Run RNA-seq FASTQ preprocessing subworkflow
@@ -268,7 +285,8 @@ workflow RNASEQ {
             DESEQ2_QC_STAR_SALMON (
                 QUANTIFY_STAR_SALMON.out.counts_gene_length_scaled.map { it[1] },
                 ch_pca_header_multiqc,
-                ch_clustering_header_multiqc
+                ch_clustering_header_multiqc,
+                ch_rin
             )
             ch_multiqc_files = ch_multiqc_files.mix(DESEQ2_QC_STAR_SALMON.out.pca_multiqc.collect())
             ch_multiqc_files = ch_multiqc_files.mix(DESEQ2_QC_STAR_SALMON.out.dists_multiqc.collect())
@@ -303,7 +321,8 @@ workflow RNASEQ {
             DESEQ2_QC_RSEM (
                 QUANTIFY_RSEM.out.merged_counts_gene,
                 ch_pca_header_multiqc,
-                ch_clustering_header_multiqc
+                ch_clustering_header_multiqc,
+                ch_rin
             )
             ch_multiqc_files = ch_multiqc_files.mix(DESEQ2_QC_RSEM.out.pca_multiqc.collect())
             ch_multiqc_files = ch_multiqc_files.mix(DESEQ2_QC_RSEM.out.dists_multiqc.collect())
@@ -688,7 +707,8 @@ workflow RNASEQ {
             DESEQ2_QC_PSEUDO (
                 ch_counts_gene_length_scaled.map { it[1] },
                 ch_pca_header_multiqc,
-                ch_clustering_header_multiqc
+                ch_clustering_header_multiqc,
+                ch_rin
             )
             ch_multiqc_files = ch_multiqc_files.mix(DESEQ2_QC_PSEUDO.out.pca_multiqc.collect())
             ch_multiqc_files = ch_multiqc_files.mix(DESEQ2_QC_PSEUDO.out.dists_multiqc.collect())
