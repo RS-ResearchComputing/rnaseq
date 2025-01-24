@@ -251,7 +251,7 @@ workflow PREPARE_GENOME {
                 ch_rrna_fastas.collect().map { [ 'rrna_refs', it ] },
                 Channel.of([ [],[] ])
             )
-            ch_sortmerna_index = SORTMERNA_INDEX.out.index.first()
+            ch_sortmerna_index = SORTMERNA_INDEX.out.index
             ch_versions = ch_versions.mix(SORTMERNA_INDEX.out.versions)
         }
     }

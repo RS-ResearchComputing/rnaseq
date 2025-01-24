@@ -280,7 +280,7 @@ workflow FASTQ_QC_TRIM_FILTER_SETSTRANDEDNESS {
                 ch_sortmerna_fastas,
                 [[],[]]
             )
-            ch_sortmerna_index = SORTMERNA_INDEX.out.index.first()
+            ch_sortmerna_index = SORTMERNA_INDEX.out.index
         }
 
         SORTMERNA (
