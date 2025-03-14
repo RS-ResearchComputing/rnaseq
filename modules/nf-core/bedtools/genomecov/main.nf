@@ -1,6 +1,6 @@
 process BEDTOOLS_GENOMECOV {
     tag "$meta.id"
-    label 'process_single'
+    label 'process_low'
 
     conda "${moduleDir}/environment.yml"
     container 'nf-core/bedtools_coreutils:a623c13f66d5262b'
