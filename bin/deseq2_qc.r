@@ -222,7 +222,7 @@ readintofile = function(row){
     cat(file = filename, line, sep= "\n", append = T)
 }
 
-cat(file = filename, paste0(c("    xlab: \"", titles[1], "\""), collapse = ""), sep = "\n")
+cat(file = filename, paste0(c("\n    xlab: \"", titles[1], "\""), collapse = ""), sep = "\n")
 cat(file = filename, paste0(c("    ylab: \"", titles[2], "\""), collapse = ""), sep = "\n", append = T)
 cat(file = filename, "data:", sep = "\n", append = T)
 invisible(apply(pca.vals.rin, 1, readintofile))
